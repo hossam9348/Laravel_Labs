@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 use App\Models\Posts;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
 
 class PostsController extends Controller
 {
     function index()
     {
-        $posts = Posts::get();
+        $posts = Posts::paginate(10);
         return view('posts.index', ['posts' => $posts]);
     }
 
@@ -18,7 +20,6 @@ class PostsController extends Controller
     }
     function destroy($id)
     {
-        // Product::where('id',$id)->delete();
         $post = Posts::find($id);
         $post->delete();
         return redirect()->route('post.index');
@@ -30,6 +31,9 @@ class PostsController extends Controller
     }
     function edit($id, Request $request)
     {
+        $validated = $request->validate([
+            'title' => 'required',
+        ]);
         $post = Posts::find($id);
         $post->update($request->except(['_method', '_token']));
         return redirect()->route('post.index');
@@ -41,15 +45,11 @@ class PostsController extends Controller
     }
     function store(Request $request)
     {
-        // $validated = $request->validate([
-        //     'name' => 'required',
-        //     'price' => 'required',
-        //     'description' => 'required',
-        //     'category_id' => 'required',
-        //     'quantity' => 'required',
-        // ]);
+        $validated = $request->validate([
+            'title' => 'required',
+        ]);
 
-        Posts::create($request->all());
+        Posts::create(['title' => $request->title, 'user_id' => Auth::user()->id]);
         return redirect()->route('post.index');
     }
 }
